@@ -81,7 +81,7 @@ public class HolderFragment extends Fragment {
 		List<String> weekForecast=new ArrayList<String>(
 				Arrays.asList(forecastArray));
 		
-		ArrayAdapter<String> mForecastAdapter = 
+		mForecastAdapter = 
 				new ArrayAdapter<String>(getActivity(),
 						R.layout.list_item_forecast,
 						R.id.list_item_forecast_textview,
@@ -188,7 +188,7 @@ public class HolderFragment extends Fragment {
 			if(result!=null){
 				Log.v(LOG_TAG,"yy clear mForecastAdapter");
 				mForecastAdapter.clear();
-				
+				Log.v(LOG_TAG,"yy not clear mForecastAdapter");
 				for(String dayForecastStr:result){
 					mForecastAdapter.add(dayForecastStr);
 				}
