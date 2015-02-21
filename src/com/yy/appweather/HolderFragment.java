@@ -18,9 +18,11 @@ import org.json.JSONObject;
 
 import android.app.Fragment;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -59,8 +61,7 @@ public class HolderFragment extends Fragment {
 		// TODO Auto-generated method stub
 		int id=item.getItemId();
 		if(id==R.id.action_refresh){
-			FetchWeatherTask weatherTask=new FetchWeatherTask();
-			weatherTask.execute("94043");	
+			updateWeather();
 			return true;
 		}
 		return super.onOptionsItemSelected(item);
@@ -71,25 +72,25 @@ public class HolderFragment extends Fragment {
 			Bundle savedInstanceState) {
 		// TODO Auto-generated method stub
 		View rootview = inflater.inflate(R.layout.fragment_main, container,false);
-		
-		String[] forecastArray={
-				"Today-Sunny-88/63",
-				"tomorrow-Sunny-88/63",
-				"Fri-wind-88/63",
-				"Tues-rainy-88/63",
-				"Sun-Sunny-88/63",
-				"Sat-Sunny-88/63",
-				"Mon-rainy-88/63"
-		};
-		
-		List<String> weekForecast=new ArrayList<String>(
-				Arrays.asList(forecastArray));
+//		
+//		String[] forecastArray={
+//				"Today-Sunny-88/63",
+//				"tomorrow-Sunny-88/63",
+//				"Fri-wind-88/63",
+//				"Tues-rainy-88/63",
+//				"Sun-Sunny-88/63",
+//				"Sat-Sunny-88/63",
+//				"Mon-rainy-88/63"
+//		};
+//		
+//		List<String> weekForecast=new ArrayList<String>(
+//				Arrays.asList(forecastArray));
 		
 		mForecastAdapter = 
 				new ArrayAdapter<String>(getActivity(),
 						R.layout.list_item_forecast,
 						R.id.list_item_forecast_textview,
-						weekForecast);
+						new ArrayList<String>());
 		ListView listview = (ListView) rootview.findViewById(R.id.listview_forecast);
 		listview.setAdapter(mForecastAdapter);
 		listview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -107,6 +108,20 @@ public class HolderFragment extends Fragment {
 		
 		return rootview;
 	}
+	
+	@Override
+	public void onStart() {
+		// TODO Auto-generated method stub
+		super.onStart();
+		updateWeather();
+	}
+	private void updateWeather() {
+		// TODO Auto-generated method stub
+		FetchWeatherTask weatherTask=new FetchWeatherTask();
+		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
+		String location = prefs.getString(getString(R.string.pref_location_key), getString(R.string.pref_location_default));
+		weatherTask.execute(location);	
+	}
 	public class FetchWeatherTask extends AsyncTask<String, String,String[]>{
 	
 		private final String LOG_TAG=FetchWeatherTask.class.getSimpleName();
@@ -120,6 +135,16 @@ public class HolderFragment extends Fragment {
 	
 		public String formatHighLows(double high, double low) {
 			// TODO Auto-generated method stub
+			SharedPreferences sharedPrefs =
+					PreferenceManager.getDefaultSharedPreferences(getActivity());
+			String unitType = sharedPrefs.getString(getString(R.string.pref_units_key), getString(R.string.pref_units_metric));
+			
+			if(unitType.equals(getString(R.string.pref_units_imperial))){
+				high = (high*1.8) +32;
+				low = (low*1.8) +32;
+			}else if(unitType.equals(getString(R.string.pref_units_metric))){
+				Log.d(LOG_TAG, "Unit type not found :"+ unitType);
+			}
 			long roundedHigh=Math.round(high);
 			long roundedLow=Math.round(low);
 			
