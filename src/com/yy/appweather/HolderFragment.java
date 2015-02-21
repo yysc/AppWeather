@@ -17,6 +17,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.app.Fragment;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
@@ -26,8 +27,10 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.Toast;
 
 public class HolderFragment extends Fragment {
 
@@ -56,7 +59,7 @@ public class HolderFragment extends Fragment {
 		int id=item.getItemId();
 		if(id==R.id.action_refresh){
 			FetchWeatherTask weatherTask=new FetchWeatherTask();
-			weatherTask.execute();	
+			weatherTask.execute("94043");	
 			return true;
 		}
 		return super.onOptionsItemSelected(item);
@@ -88,11 +91,19 @@ public class HolderFragment extends Fragment {
 						weekForecast);
 		ListView listview = (ListView) rootview.findViewById(R.id.listview_forecast);
 		listview.setAdapter(mForecastAdapter);
-		
+		listview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+			@Override
+			public void onItemClick(AdapterView<?> parent, View view,
+					int position, long id) {
+				// TODO Auto-generated method stub
+				String forecast = mForecastAdapter.getItem(position);
+				Toast.makeText(getActivity(), forecast, Toast.LENGTH_SHORT).show();
+			}
+		});
 		
 		return rootview;
 	}
-	public class FetchWeatherTask extends AsyncTask<Void, String,String[]>{
+	public class FetchWeatherTask extends AsyncTask<String, String,String[]>{
 	
 		private final String LOG_TAG=FetchWeatherTask.class.getSimpleName();
 
@@ -111,23 +122,44 @@ public class HolderFragment extends Fragment {
 			return roundedHigh+"/"+roundedLow;
 		}
 		
-		protected String[] doInBackground(Void...urlpara) {
+		protected String[] doInBackground(String...urlpara) {
 			// TODO Auto-generated method stub
-				
+				if(urlpara.length==0){
+					return null;
+				}
 				HttpURLConnection urlConnection = null;
 				BufferedReader reader = null;
 				 
 				// Will contain the raw JSON response as a string.
 				String forecastJsonStr = null;
+				
+				String format = "json";
+				String units = "metric";
 				int numDays=7;
 				
 				try {
 				    // Construct the URL for the OpenWeatherMap query
 				    // Possible parameters are avaiable at OWM's forecast API page, at
 				    // http://openweathermap.org/API#forecast
-				    URL url = new URL("http://api.openweathermap.org/data/2.5/forecast/daily?q=94043&mode=json&units=metric&cnt=7");
+					final String FORECAST_BASE_URL = 
+							"http://api.openweathermap.org/data/2.5/forecast/daily?";
+					final String QUERY_PARAM = "q";
+					final String FORMAT_PARAM = "mode";
+					final String UNITS_PARAM = "units";
+					final String DAYS_PARAM = "cnt";
+					
+				    Uri buildUri = Uri.parse(FORECAST_BASE_URL).buildUpon()
+				    		.appendQueryParameter(QUERY_PARAM, urlpara[0])
+				    		.appendQueryParameter(FORMAT_PARAM, format)
+				    		.appendQueryParameter(UNITS_PARAM, units)
+				    		.appendQueryParameter(DAYS_PARAM, Integer.toString(numDays))
+				    		.build();
 				 
 				    // Create the request to OpenWeatherMap, and open the connection
+				    
+				    URL url = new URL(buildUri.toString());
+				    Log.v(LOG_TAG, "Build URI"+buildUri.toString());
+				    
 				    urlConnection = (HttpURLConnection) url.openConnection();
 				    urlConnection.setRequestMethod("GET");
 				    urlConnection.connect();
@@ -186,9 +218,7 @@ public class HolderFragment extends Fragment {
 		protected void onPostExecute(String[] result) {
 			// TODO Auto-generated method stub
 			if(result!=null){
-				Log.v(LOG_TAG,"yy clear mForecastAdapter");
 				mForecastAdapter.clear();
-				Log.v(LOG_TAG,"yy not clear mForecastAdapter");
 				for(String dayForecastStr:result){
 					mForecastAdapter.add(dayForecastStr);
 				}
