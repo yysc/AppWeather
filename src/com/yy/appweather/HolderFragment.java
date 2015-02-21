@@ -17,6 +17,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.app.Fragment;
+import android.content.Intent;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -97,7 +98,10 @@ public class HolderFragment extends Fragment {
 					int position, long id) {
 				// TODO Auto-generated method stub
 				String forecast = mForecastAdapter.getItem(position);
-				Toast.makeText(getActivity(), forecast, Toast.LENGTH_SHORT).show();
+				Intent intent = new Intent(getActivity(),DetailActivity.class)
+							.putExtra(Intent.EXTRA_TEXT, forecast);
+				startActivity(intent);
+				//Toast.makeText(getActivity(), forecast, Toast.LENGTH_SHORT).show();
 			}
 		});
 		
