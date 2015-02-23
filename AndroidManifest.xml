@@ -15,6 +15,7 @@
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
+        <uses-library android:name="android.test.runner"/>
         <activity
             android:name=".MainActivity"
             android:label="@string/app_name" >
@@ -45,5 +46,7 @@
 	    
 
     </application>
-
+     <instrumentation
+        android:name="android.test.InstrumentationTestRunner"
+        android:targetPackage="com.yy.appweather" android:label="aaa" />
 </manifest>
